@@ -1,0 +1,169 @@
+from abc import ABC, abstractmethod
+from typing import List
+
+# ------------------------------
+# Interfaz: define comportamiento de visualización
+# ------------------------------
+class Imprimible:
+    """
+    Interfaz que obliga a implementar un método para mostrar
+    la información completa del objeto.
+    """
+    @abstractmethod
+    def mostrarInformacion(self) -> None:
+        """Muestra en pantalla los datos del objeto."""
+        pass
+
+
+# ------------------------------
+# Clase Abstracta: Producto
+# ------------------------------
+class Producto(ABC, Imprimible):
+    """
+    Clase abstracta que representa un producto genérico.
+    Define atributos comunes y métodos que TODOS los productos
+    deben implementar (polimorfismo). No se instancia directamente.
+    """
+
+    def __init__(self, codigo: str, nombre: str, precio: float, stock: int):
+        """
+        Constructor común a todos los productos
+        :param codigo: Identificador único
+        :param nombre: Nombre del producto
+        :param precio: Precio unitario
+        :param stock: Cantidad disponible
+        """
+        self.codigo = codigo
+        self.nombre = nombre
+        self.precio = precio
+        self.stock = stock
+
+    @abstractmethod
+    def calcularValorTotal(self) -> float:
+        """
+        Calcula valor total en inventario.
+        Cada subclase puede implementarlo de forma distinta.
+        """
+        pass
+
+    @abstractmethod
+    def aplicarDescuento(self, porcentaje: float) -> float:
+        """
+        Aplica descuento y devuelve el precio con rebaja.
+        Reglas diferentes según tipo de producto.
+        :param porcentaje: Valor entre 0 y 100
+        """
+        pass
+
+    def mostrarInformacion(self) -> None:
+        """Muestra datos generales del producto."""
+        print(f"Código: {self.codigo} | Nombre: {self.nombre}")
+        print(f"Precio: ${self.precio:.2f} | Stock: {self.stock}")
+
+
+# ------------------------------
+# Subclase: Electrónico
+# ------------------------------
+class Electronico(Producto):
+    """Producto de tipo electrónico: hereda de Producto."""
+
+    def __init__(self, codigo: str, nombre: str, precio: float, stock: int, garantia_meses: int):
+        super().__init__(codigo, nombre, precio, stock)
+        self.garantia_meses = garantia_meses
+
+    def calcularValorTotal(self) -> float:
+        """Sobreescritura: incluye recargo por garantía extendida (5%)."""
+        valor_base = self.precio * self.stock
+        return valor_base * 1.05
+
+    def aplicarDescuento(self, porcentaje: float) -> float:
+        """Sobreescritura: descuento máximo 15% en electrónica."""
+        descuento_real = min(porcentaje, 15) / 100
+        return self.precio * (1 - descuento_real)
+
+    def mostrarInformacion(self) -> None:
+        super().mostrarInformacion()
+        print(f"→ Tipo: Electrónico | Garantía: {self.garantia_meses} meses")
+        print(f"→ Valor total en stock: ${self.calcularValorTotal():.2f}\n")
+
+
+# ------------------------------
+# Subclase: Alimento
+# ------------------------------
+class Alimento(Producto):
+    """Producto de tipo alimento: hereda de Producto."""
+
+    def __init__(self, codigo: str, nombre: str, precio: float, stock: int, fecha_caducidad: str):
+        super().__init__(codigo, nombre, precio, stock)
+        self.fecha_caducidad = fecha_caducidad
+
+    def calcularValorTotal(self) -> float:
+        """Sobreescritura: sin recargos ni descuentos especiales."""
+        return self.precio * self.stock
+
+    def aplicarDescuento(self, porcentaje: float) -> float:
+        """Sobreescritura: descuento máximo 30% en alimentos."""
+        descuento_real = min(porcentaje, 30) / 100
+        return self.precio * (1 - descuento_real)
+
+    def mostrarInformacion(self) -> None:
+        super().mostrarInformacion()
+        print(f"→ Tipo: Alimento | Caducidad: {self.fecha_caducidad}")
+        print(f"→ Valor total en stock: ${self.calcularValorTotal():.2f}\n")
+
+
+# ------------------------------
+# Subclase: Ropa
+# ------------------------------
+class Ropa(Producto):
+    """Producto de tipo ropa: hereda de Producto."""
+
+    def __init__(self, codigo: str, nombre: str, precio: float, stock: int, talla: str, material: str):
+        super().__init__(codigo, nombre, precio, stock)
+        self.talla = talla
+        self.material = material
+
+    def calcularValorTotal(self) -> float:
+        """Sobreescritura: recargo de 2% por manejo de inventario textil."""
+        valor_base = self.precio * self.stock
+        return valor_base * 1.02
+
+    def aplicarDescuento(self, porcentaje: float) -> float:
+        """Sobreescritura: sin límite de descuento en ropa."""
+        descuento = porcentaje / 100
+        return self.precio * (1 - descuento)
+
+    def mostrarInformacion(self) -> None:
+        super().mostrarInformacion()
+        print(f"→ Tipo: Ropa | Talla: {self.talla} | Material: {self.material}")
+        print(f"→ Valor total en stock: ${self.calcularValorTotal():.2f}\n")
+
+
+# ------------------------------
+# Programa Principal
+# ------------------------------
+def main():
+    """Demostración de POLIMORFISMO: tratamos todos los productos igual."""
+
+    # Creamos lista de productos (todos son "Producto" con comportamiento distinto)
+    inventario: List[Producto] = [
+        Electronico("E001", "Laptop", 1200.00, 5, 12),
+        Alimento("A001", "Leche", 25.50, 50, "2026-12-01"),
+        Ropa("R001", "Camisa", 450.00, 20, "M", "Algodón")
+    ]
+
+    print("=== GESTIÓN DE INVENTARIO (Polimorfismo en acción) ===\n")
+
+    # Llamamos el mismo método para TODOS: cada uno responde diferente
+    for producto in inventario:
+        producto.mostrarInformacion()
+
+        # Mismo método → distinto cálculo según subclase
+        precio_descuento = producto.aplicarDescuento(20)
+        print(f"✅ Precio con 20% de descuento: ${precio_descuento:.2f}")
+        print("-" * 50)
+
+
+if __name__ == "__main__":
+    main()
+
